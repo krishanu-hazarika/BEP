@@ -1,0 +1,21 @@
+case,initial_hand,strategy,keep_indices,kept_cards,estimated_reward,matches_oracle
+Pair hand,AH AD 7C 5S 3D,Greedy,"[0, 1]",AH AD,1.638,True
+Pair hand,AH AD 7C 5S 3D,Bandit,"[0, 1, 2]",AH AD 7C,1.374,False
+Pair hand,AH AD 7C 5S 3D,Q-learning,"[0, 1, 2, 3, 4]",AH AD 7C 5S 3D,1.0,False
+Pair hand,AH AD 7C 5S 3D,Oracle,"[0, 1]",AH AD,1.548,True
+Four-to-a-flush,AH KH QH 7H 3D,Greedy,"[0, 1, 2, 3]",AH KH QH 7H,1.386,False
+Four-to-a-flush,AH KH QH 7H 3D,Bandit,"[1, 2]",KH QH,0.617,False
+Four-to-a-flush,AH KH QH 7H 3D,Q-learning,"[0, 1]",AH KH,0.598,False
+Four-to-a-flush,AH KH QH 7H 3D,Oracle,"[0, 1, 2]",AH KH QH,1.472,True
+Four-to-a-straight,5H 6D 7C 8S KH,Greedy,"[0, 1, 2, 3]",5H 6D 7C 8S,0.901,True
+Four-to-a-straight,5H 6D 7C 8S KH,Bandit,"[1, 2]",6D 7C,0.612,False
+Four-to-a-straight,5H 6D 7C 8S KH,Q-learning,"[1, 3]",6D 8S,0.612,False
+Four-to-a-straight,5H 6D 7C 8S KH,Oracle,"[0, 1, 2, 3]",5H 6D 7C 8S,0.911,True
+Two pair,AH AD KC KD 3S,Greedy,"[0, 1, 2, 3]",AH AD KC KD,2.539,True
+Two pair,AH AD KC KD 3S,Bandit,"[0, 1, 2, 3]",AH AD KC KD,2.63,True
+Two pair,AH AD KC KD 3S,Q-learning,"[0, 1, 2, 3, 4]",AH AD KC KD 3S,2.0,False
+Two pair,AH AD KC KD 3S,Oracle,"[0, 1, 2, 3]",AH AD KC KD,2.707,True
+Difficult high-card hand,AH KD QC JS 4D,Greedy,"[0, 1, 2, 3]",AH KD QC JS,0.575,False
+Difficult high-card hand,AH KD QC JS 4D,Bandit,"[0, 4]",AH 4D,0.556,False
+Difficult high-card hand,AH KD QC JS 4D,Q-learning,[],,0.617,False
+Difficult high-card hand,AH KD QC JS 4D,Oracle,[2],QC,0.704,True
