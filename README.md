@@ -2,29 +2,29 @@
 
 ## Overview
 
-This project compares four decision-making strategies for draw poker, each with a different balance of computational cost and decision quality. The objective is to determine which cards should be kept or discarded in order to maximize the expected reward of the final hand.
+This project investigates decision-making strategies for Draw Poker by comparing four approaches that differ in computational cost and decision quality. The objective is to determine which cards should be kept or discarded in order to maximize the expected reward of the final poker hand.
 
-| Strategy   | Approach                      | Role                          |
-| ---------- | ----------------------------- | ----------------------------- |
-| Greedy     | Rule-based heuristics         | Fast baseline                 |
-| Oracle     | Exhaustive Monte Carlo search | Approximate benchmark         |
-| Bandit     | UCB multi-armed bandit        | Efficient near-optimal search |
-| Q-Learning | Reinforcement learning agent  | Learned policy                |
+| Strategy | Approach | Role |
+|----------|----------|------|
+| Greedy | Rule-based heuristics | Fast baseline |
+| Oracle | Exhaustive Monte Carlo search | Approximate benchmark |
+| Bandit | Upper Confidence Bound (UCB) search | Efficient near-optimal search |
+| Q-Learning | Enhanced tabular reinforcement learning | Learned policy |
 
-The project was developed as part of a Bachelor End Project in Data Science and investigates how strategy performance changes under increasing action-space complexity and alternative reward structures.
+The project was developed as part of a Bachelor End Project in Data Science and evaluates how strategy performance changes under increasing action-space complexity in a Video Poker scoring system.
 
 ---
 
-## Project Structure
+# Project Structure
 
 ```text
 project_root/
 │
-├── game.py              # Core poker environment & hand evaluation
+├── game.py              # Core poker environment and hand evaluation
 ├── greedy.py            # Rule-based heuristic strategy
 ├── oracle.py            # Exhaustive Monte Carlo search
 ├── bandit.py            # UCB multi-armed bandit search
-├── qlearning.py         # Q-learning reinforcement learning agent
+├── qlearning.py         # Enhanced tabular Q-learning agent
 ├── evaluate.py          # Experimental evaluation pipeline
 ├── plots.py             # Figure generation
 ├── demo.py              # Interactive strategy demonstration
@@ -33,9 +33,6 @@ project_root/
 ├── README.md
 │
 ├── evaluation/
-│   ├── evaluation_n5_linear.csv
-│   ├── evaluation_n6_linear.csv
-│   ├── evaluation_n7_linear.csv
 │   ├── evaluation_n5_video_poker.csv
 │   ├── evaluation_n6_video_poker.csv
 │   └── evaluation_n7_video_poker.csv
@@ -44,8 +41,7 @@ project_root/
 │   ├── average_score_no_CI.png
 │   ├── match_rate.png
 │   ├── runtime_by_strategy.png
-│   ├── runtime_decomposition.png
-│   └── risk_reward.png
+│   └── runtime_decomposition.png
 │
 ├── policies/
 │   └── q_policy_*.pkl
@@ -56,123 +52,169 @@ project_root/
 
 ---
 
-## Module Reference
+# Module Reference
 
-### game.py — Poker Engine
+## game.py — Poker Engine
 
-Core environment and game mechanics:
+Provides the core game environment, including:
 
-* Card representation
-* Deck generation and shuffling
-* Draw and replacement mechanics
-* Poker hand evaluation
-* Scoring systems
-* State feature extraction for reinforcement learning
-* Enumeration of all keep/discard actions
-
-### greedy.py — Heuristic Strategy
-
-Fast rule-based baseline using poker-specific heuristics such as pairs, flush draws, straight draws, and high-card retention.
-
-### oracle.py — Exhaustive Monte Carlo Search
-
-Evaluates every possible keep/discard action using Monte Carlo simulation and selects the action with the highest estimated expected reward.
-
-Serves as the approximate benchmark used throughout the experiments.
-
-### bandit.py — UCB Bandit Search
-
-Treats each keep/discard action as a bandit arm and uses the Upper Confidence Bound (UCB) algorithm to balance exploration and exploitation.
-
-Attempts to approximate oracle performance while using substantially fewer simulations.
-
-### qlearning.py — Reinforcement Learning Agent
-
-Learns action values through repeated simulated play using tabular Q-learning and ε-greedy exploration.
-
-The discard problem is modeled as a one-step episodic reinforcement learning task.
-
-### evaluate.py — Experimental Evaluation Pipeline
-
-Trains Q-learning agents and evaluates all strategies on identical randomly generated poker hands.
-
-Records:
-
-* Average expected reward
-* Reward variability (standard deviation)
-* Regret relative to oracle
-* Oracle agreement rates
-* Statistical significance tests
-* Runtime measurements
-* Runtime decomposition metrics
-
-Results are saved as CSV files.
-
-### plots.py — Visualization
-
-Loads evaluation results and generates all figures used in the analysis.
-
-### demo.py — Interactive Demonstration
-
-Generates a random poker hand and shows:
-
-* Strategy recommendations
-* Kept and discarded cards
-* Estimated rewards
-* Realized outcomes after replacement
-
-Useful for understanding individual strategy behavior.
-
-### case_studies.py — Case Study Generation
-
-Evaluates predefined representative poker hands and records:
-
-* Selected actions
-* Estimated rewards
-* Oracle agreement
-
-Results are exported to CSV for inclusion in qualitative analysis.
+- Card representation
+- Deck generation and shuffling
+- Drawing and replacing cards
+- Poker hand evaluation
+- Video Poker scoring
+- State feature extraction
+- Enumeration of all possible keep/discard actions
 
 ---
 
-## Installation
+## greedy.py — Heuristic Strategy
 
-### 1. Clone the repository
+Implements a rule-based baseline using poker-specific heuristics such as:
+
+- Pairs
+- Flush draws
+- Straight draws
+- High-card retention
+
+The strategy is computationally inexpensive and provides a strong baseline for comparison.
+
+---
+
+## oracle.py — Exhaustive Monte Carlo Search
+
+Evaluates every possible keep/discard action using Monte Carlo simulation and selects the action with the highest estimated expected reward.
+
+Although computationally expensive, it serves as the approximate benchmark throughout the project.
+
+---
+
+## bandit.py — UCB Bandit Search
+
+Treats each keep/discard action as an independent bandit arm and applies the Upper Confidence Bound (UCB) algorithm to balance exploration and exploitation.
+
+The method approximates Oracle performance while requiring substantially fewer simulations.
+
+---
+
+## qlearning.py — Enhanced Tabular Q-Learning
+
+Implements an enhanced tabular Q-learning agent for the one-step discard decision problem.
+
+Key improvements include:
+
+- Canonical hand ordering to align actions with state representations.
+- Differentiation between inside and open-ended straight draws.
+- Longest consecutive rank run feature.
+- Royal flush potential feature.
+- Exact high-card composition for high-card hands.
+- Jacks-or-Better pair indicator.
+- Incremental sample-average Q-value updates for stable convergence.
+
+The discard decision is modelled as a one-step reinforcement learning problem where each episode consists of:
+
+1. Drawing an initial hand.
+2. Selecting a keep/discard action.
+3. Drawing replacement cards.
+4. Receiving the final reward.
+5. Updating the Q-table.
+
+---
+
+## evaluate.py — Experimental Evaluation
+
+Automatically trains a Q-learning agent and evaluates all four strategies on identical randomly generated poker hands.
+
+For each strategy it records:
+
+- Average expected reward
+- Reward standard deviation
+- Regret relative to Oracle
+- Oracle agreement rate
+- Paired t-test significance values
+- Strategy runtime
+- Runtime decomposition
+- Q-learning training and inference timings
+
+Results are exported as CSV files.
+
+---
+
+## plots.py — Visualization
+
+Reads evaluation results and generates all figures used throughout the analysis, including:
+
+- Average expected reward
+- Oracle agreement rate
+- Runtime comparison
+- Runtime decomposition
+
+---
+
+## demo.py — Demonstration
+
+Generates a random poker hand and displays:
+
+- Strategy recommendations
+- Cards kept and discarded
+- Estimated rewards
+- Final realized hand
+- Final reward
+
+Useful for understanding the behaviour of individual strategies.
+
+---
+
+## case_studies.py — Representative Hands
+
+Evaluates a number of predefined poker hands and reports:
+
+- Selected actions
+- Cards retained
+- Estimated expected reward
+- Agreement with Oracle
+
+Results are exported as CSV files for qualitative analysis.
+
+---
+
+# Installation
+
+## Clone the repository
 
 ```bash
 git clone <repository_url>
 cd <repository_name>
 ```
 
-### 2. Install dependencies
+## Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Dependencies
+Required packages:
 
-* numpy
-* pandas
-* matplotlib
-* scipy
+- numpy
+- matplotlib
+- pandas
+- scipy
 
-Standard library modules used:
+The project additionally uses several Python standard-library modules, including:
 
-* random
-* itertools
-* collections
-* csv
-* pathlib
-* time
-* math
-* pickle
+- random
+- itertools
+- collections
+- csv
+- pathlib
+- pickle
+- time
 
 ---
 
-## Usage
+# Usage
 
-### Run Full Experimental Evaluation
+## Run the Experimental Evaluation
 
 ```bash
 python evaluate.py
@@ -180,11 +222,11 @@ python evaluate.py
 
 This will:
 
-* Train Q-learning agents
-* Evaluate all strategies
-* Generate evaluation CSV files
+- Train the Q-learning agent.
+- Evaluate all four strategies.
+- Save evaluation results as CSV files.
 
-Results are stored in:
+Output:
 
 ```text
 evaluation/
@@ -192,13 +234,13 @@ evaluation/
 
 ---
 
-### Generate Plots
+## Generate Figures
 
 ```bash
 python plots.py
 ```
 
-Generated figures are saved to:
+Output:
 
 ```text
 plots/
@@ -206,23 +248,25 @@ plots/
 
 ---
 
-### Run Interactive Demo
+## Run the Demonstration
 
 ```bash
 python demo.py
 ```
 
-Displays a randomly generated poker hand together with recommendations from all strategies and a realized outcome.
+Displays a randomly generated poker hand together with recommendations from all strategies and the realized outcome after replacement.
 
 ---
 
-### Generate Case Studies
+## Generate Case Studies
 
 ```bash
 python case_studies.py
 ```
 
-Produces detailed strategy comparisons on representative hands and saves results to:
+Produces detailed comparisons for representative poker hands.
+
+Output:
 
 ```text
 case_studies/
@@ -230,63 +274,61 @@ case_studies/
 
 ---
 
-## Generated Outputs
+# Generated Outputs
 
-### Evaluation Results
+## Evaluation Results
 
 ```text
-evaluation_n5_linear.csv
-evaluation_n6_linear.csv
-evaluation_n7_linear.csv
 evaluation_n5_video_poker.csv
 evaluation_n6_video_poker.csv
 evaluation_n7_video_poker.csv
 ```
 
-Each file contains:
+Each evaluation file contains:
 
-* Experimental configuration
-* Average rewards
-* Standard deviations
-* Regret values
-* Oracle agreement rates
-* Statistical significance test results
-* Runtime statistics
-* Runtime decomposition metrics
-
----
-
-### Figures
-
-| File                      | Contents                           |
-| ------------------------- | ---------------------------------- |
-| average_score_no_CI.png   | Average expected reward            |
-| match_rate.png            | Action agreement with oracle       |
-| runtime_by_strategy.png   | Runtime scaling by strategy        |
-| runtime_decomposition.png | Internal runtime breakdown         |
-| risk_reward.png           | Reward versus variability analysis |
+- Experimental configuration
+- Average expected reward
+- Standard deviation
+- Regret
+- Oracle agreement rate
+- Paired t-test results
+- Runtime statistics
+- Runtime decomposition
+- Q-learning training and inference timings
 
 ---
 
-## Key Findings
+## Figures
 
-* Oracle search consistently achieves the highest expected reward across all hand sizes and scoring systems.
-* Bandit search closely approximates oracle performance while requiring substantially less computation.
-* Greedy heuristics perform competitively despite negligible computational cost.
-* Q-learning struggles to generalize effectively using the compact state representation employed in this project.
-* Performance differences become more pronounced as hand size increases.
-* Video-poker scoring amplifies reward variability and increases the importance of accurate discard decisions.
-* Monte Carlo simulation dominates overall computational cost for search-based methods.
+| File | Description |
+|------|-------------|
+| average_score_no_CI.png | Average expected reward across strategies |
+| match_rate.png | Action agreement with Oracle |
+| runtime_by_strategy.png | Runtime comparison between strategies |
+| runtime_decomposition.png | Internal runtime breakdown |
 
 ---
 
-## Reproducibility
+# Key Findings
+
+- Oracle search consistently achieves the highest expected reward across all evaluated hand sizes.
+- Bandit search closely approximates Oracle performance while requiring substantially less computation.
+- Greedy heuristics provide competitive performance despite their negligible computational cost.
+- Although Q-learning does not outperform the search-based methods, it achieves competitive expected rewards while maintaining low inference cost.
+- Performance differences become more pronounced as the hand size increases.
+- Monte Carlo simulation dominates the computational cost of the search-based strategies.
+
+---
+
+# Reproducibility
 
 All experiments use fixed random seeds:
 
 ```python
 random.seed(42)
-numpy.random.seed(42)
+np.random.seed(42)
 ```
 
-This ensures consistent experimental results across repeated executions.
+ensuring reproducible experimental results across repeated executions.
+
+---
