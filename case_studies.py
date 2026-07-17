@@ -42,7 +42,7 @@ def action_to_cards(hand, action):
 
 
 def load_or_train_q_agent():
-    agent = QLearningAgent(hand_size=HAND_SIZE, scoring_system=SCORING_SYSTEM, alpha=0.1, gamma=0.0, epsilon=0.1,)
+    agent = QLearningAgent(hand_size=HAND_SIZE, scoring_system=SCORING_SYSTEM, gamma=0.0, epsilon=0.1,)
 
     if POLICY_FILE.exists():
         with open(POLICY_FILE, "rb") as f:
@@ -64,7 +64,7 @@ def load_or_train_q_agent():
 
 
 def evaluate_case(case_name, hand, q_agent):
-    greedy_action = greedy_keep_indices(hand)
+    greedy_action = tuple(sorted(greedy_keep_indices(hand))) # normalized to a sorted tuple so it is directly comparable with the oracle's action
     greedy_value = simulate_action(hand, greedy_action, num_simulations=ORACLE_SIMULATIONS, scoring_system=SCORING_SYSTEM,)
 
     bandit_action, bandit_internal_value = best_bandit_action(hand, num_rounds=BANDIT_ROUNDS, simulation_budget_per_pull=BANDIT_BUDGET_PER_PULL, exploration_constant=BANDIT_EXPLORATION_CONSTANT, scoring_system=SCORING_SYSTEM,)

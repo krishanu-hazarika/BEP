@@ -13,7 +13,7 @@ from scipy.stats import ttest_rel
 random.seed(42) # setting a fixed random seed to ensure reproducible and consistent experimental results across multiple runs
 np.random.seed(42)
 
-def evaluate_strategies(num_hands: int = 50, hand_size: int = 5, scoring_system: str = "linear", oracle_simulations: int = 1000, bandit_rounds: int = 300, bandit_budget_per_pull: int = 3, bandit_exploration_constant: float = 2.0, q_episodes: int = 20000,):
+def evaluate_strategies(num_hands: int = 50, hand_size: int = 5, scoring_system: str = "video_poker", oracle_simulations: int = 1000, bandit_rounds: int = 300, bandit_budget_per_pull: int = 3, bandit_exploration_constant: float = 2.0, q_episodes: int = 20000,):
     """
     Evaluates oracle search, greedy heuristics, bandit exploration, and Q-learning across multiple randomly generated draw poker hands under a selected scoring system.
     
@@ -66,7 +66,7 @@ def evaluate_strategies(num_hands: int = 50, hand_size: int = 5, scoring_system:
     print("Training Q-learning agent...")
 
     q_training_start = time.time()
-    q_agent = QLearningAgent(hand_size=hand_size, scoring_system=scoring_system, alpha=0.1, gamma=0.0, epsilon=0.1,) # initializing the Q-learning agent with the selected game configuration and learning parameters
+    q_agent = QLearningAgent(hand_size=hand_size, scoring_system=scoring_system, gamma=0.0, epsilon=0.1,) # initializing the Q-learning agent with the selected game configuration and learning parameters
     q_training_details = q_agent.train(num_episodes=q_episodes, return_timing=True,) # training the Q-learning agent over many simulated episodes to learn action values
     q_training_runtime = time.time() - q_training_start
 
@@ -78,12 +78,13 @@ def evaluate_strategies(num_hands: int = 50, hand_size: int = 5, scoring_system:
         initial_hand = draw_cards(deck, hand_size)
 
         strategy_start = time.time()
-        greedy_action = greedy_keep_indices(initial_hand)
+        greedy_action = tuple(sorted(greedy_keep_indices(initial_hand))) # normalized to a sorted tuple so it is directly comparable with the oracle's action
         greedy_value = simulate_action(initial_hand, greedy_action, num_simulations=oracle_simulations, scoring_system=scoring_system,)
         greedy_runtime += time.time() - strategy_start
 
         strategy_start = time.time()
         bandit_action, _, bandit_timing = best_bandit_action(initial_hand, num_rounds=bandit_rounds, simulation_budget_per_pull=bandit_budget_per_pull, exploration_constant=bandit_exploration_constant, scoring_system=scoring_system, return_timing=True,)
+        bandit_action = tuple(sorted(bandit_action))
         bandit_value = simulate_action(initial_hand, bandit_action, num_simulations=oracle_simulations, scoring_system=scoring_system,)
         bandit_runtime += time.time() - strategy_start
         bandit_action_generation_time += bandit_timing["bandit_action_generation_time"]
@@ -93,6 +94,7 @@ def evaluate_strategies(num_hands: int = 50, hand_size: int = 5, scoring_system:
         
         strategy_start = time.time()
         q_action, _, q_inference_timing = q_agent.best_action(initial_hand, return_timing=True,)
+        q_action = tuple(sorted(q_action))
         q_value = simulate_action(initial_hand, q_action, num_simulations=oracle_simulations, scoring_system=scoring_system,)
         qlearning_runtime += time.time() - strategy_start
         q_inference_state_time += q_inference_timing["q_inference_state_time"]
@@ -100,6 +102,7 @@ def evaluate_strategies(num_hands: int = 50, hand_size: int = 5, scoring_system:
 
         strategy_start = time.time()
         oracle_action, oracle_value, oracle_timing = best_oracle_action(initial_hand, num_simulations=oracle_simulations, scoring_system=scoring_system, return_timing=True,)
+        oracle_action = tuple(sorted(oracle_action))
         oracle_runtime += time.time() - strategy_start
         oracle_action_generation_time += oracle_timing["oracle_action_generation_time"]
         oracle_simulation_time += oracle_timing["oracle_simulation_time"]
@@ -207,7 +210,7 @@ if __name__ == "__main__":
     output_folder.mkdir(exist_ok=True) # creating a folder called "evaluation" to store all results
 
     hand_sizes = [5, 6, 7] # defining the hand sizes evaluated in the experiments
-    scoring_systems = ["linear", "video_poker"] # defining the reward structures evaluated in the experiments
+    scoring_systems = ["video_poker"] 
 
     for scoring_system in scoring_systems:
         for hand_size in hand_sizes:
@@ -218,7 +221,7 @@ if __name__ == "__main__":
                 print(f"Skipping existing file: {filename}")
                 continue
 
-            results = evaluate_strategies(num_hands=200, hand_size=hand_size, scoring_system=scoring_system, oracle_simulations=1000, bandit_rounds=300, bandit_budget_per_pull=3, bandit_exploration_constant=2.0, q_episodes=100000,)
+            results = evaluate_strategies(num_hands=500, hand_size=hand_size, scoring_system=scoring_system, oracle_simulations=2000, bandit_rounds=500, bandit_budget_per_pull=5, bandit_exploration_constant=2.0, q_episodes=1000000,)
 
             save_results_to_csv(results, output_folder) # saving the aggregated evaluation metrics to a CSV file
 

@@ -1,19 +1,18 @@
 from typing import List, Tuple
-from game import (Card, create_deck, shuffle_deck, draw_cards, replace_cards, evaluate_hand, all_keep_actions,)
+from game import (Card, FULL_DECK, shuffle_deck, replace_cards, evaluate_hand, all_keep_actions)
 import time
 
 def simulate_action(initial_hand: List[Card], keep_indices: List[int], num_simulations: int = 1000, scoring_system: str = "linear",) -> float:
     """
     Estimate expected reward of one keep action using Monte Carlo (MC) simulation.
     """
+    initial_card_set = frozenset(initial_hand)
+    available_cards = [card for card in FULL_DECK if card not in initial_card_set]
+
     total_score = 0.0
 
     for _ in range(num_simulations):
-        deck = create_deck()
-
-        for card in initial_hand:
-            deck.remove(card)
-
+        deck = available_cards.copy()
         shuffle_deck(deck)
 
         final_hand = replace_cards(initial_hand, keep_indices, deck) # generating the final hand after replacing discarded cards

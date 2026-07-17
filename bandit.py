@@ -1,30 +1,22 @@
 import math
-from typing import List, Tuple
+import time
+import numpy as np
+from typing import List
 from game import Card, all_keep_actions
 from oracle import simulate_action
-import time
 
-
-def ucb_select_action(action_counts: List[int], action_values: List[float], total_pulls: int, exploration_constant: float = 2.0) -> int:
+def ucb_select_action(action_counts: np.ndarray, action_values: np.ndarray, total_pulls: int, exploration_constant: float = 2.0) -> int:
     """
     Selects an action index using the upper confidence bound (UCB) rule.
     """
-    for i, count in enumerate(action_counts): # using a "for" loop to make sure every action is tried at least once
-        if count == 0:
-            return i
+    zero_mask = action_counts == 0 
 
-    best_index = 0
-    best_ucb = float("-inf")
+    if np.any(zero_mask):
+        return int(np.flatnonzero(zero_mask)[0])
 
-    for i in range(len(action_counts)): # iterating through all actions to compute their UCB scores and selecting the action with the highest exploration-exploitation value
-        bonus = exploration_constant * math.sqrt(math.log(total_pulls) / action_counts[i])
-        ucb_value = action_values[i] + bonus
-
-        if ucb_value > best_ucb:
-            best_ucb = ucb_value
-            best_index = i
-
-    return best_index
+    bonus = exploration_constant * np.sqrt(np.log(total_pulls) / action_counts)
+    ucb_values = action_values + bonus
+    return int(np.argmax(ucb_values))
 
 def best_bandit_action(initial_hand: List[Card], num_rounds: int = 100, simulation_budget_per_pull: int = 1, exploration_constant: float = 2.0, scoring_system: str = "linear", return_timing: bool = False):
     """
@@ -39,8 +31,8 @@ def best_bandit_action(initial_hand: List[Card], num_rounds: int = 100, simulati
     timing["bandit_action_generation_time"] += time.time() - start
     num_actions = len(actions) # storing the total number of possible actions
 
-    action_counts = [0] * num_actions # tracking the number of times each action has been selected during bandit search
-    action_values = [0.0] * num_actions  # storing the running average reward estimate for each action
+    action_counts = np.zeros(num_actions, dtype=np.int32) # tracking the number of times each action has been selected during bandit search
+    action_values = np.zeros(num_actions, dtype=np.float32)  # storing the running average reward estimate for each action
 
     total_pulls = 0 # counting the total number of action selections performed during the search
 
@@ -63,7 +55,7 @@ def best_bandit_action(initial_hand: List[Card], num_rounds: int = 100, simulati
         action_values[action_idx] = new_mean # storing the updated estimated value for the action
         timing["bandit_update_time"] += time.time() - start
 
-    best_idx = max(range(num_actions), key=lambda i: action_values[i]) # selecting the action with the highest estimated average reward after all bandit search rounds are completed
+    best_idx = int(np.argmax(action_values)) # selecting the action with the highest estimated average reward after all bandit search rounds are completed
     
     if return_timing:
         return actions[best_idx], action_values[best_idx], timing

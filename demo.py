@@ -53,7 +53,6 @@ def load_or_train_q_agent():
     agent = QLearningAgent(
         hand_size=HAND_SIZE,
         scoring_system=SCORING_SYSTEM,
-        alpha=0.1,
         gamma=0.0,
         epsilon=0.1,
     )

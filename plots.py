@@ -126,7 +126,6 @@ def plot_runtime_decomposition(df):
     """
     Plots internal runtime breakdown.
     """
-
     components = {
         "Bandit action generation": df["bandit_action_generation_time"].sum(),
         "Bandit UCB selection": df["bandit_ucb_selection_time"].sum(),
@@ -150,53 +149,6 @@ def plot_runtime_decomposition(df):
     plt.savefig(PLOT_FOLDER / "runtime_decomposition.png", dpi=300)
     plt.close()
 
-def plot_risk_reward(df):
-    """
-    Plots the relationship between reward variability and average expected reward
-    for all strategies under different scoring systems.
-
-    The function generates scatter plots using the standard deviation of reward
-    as a measure of risk and the average expected reward as a measure of performance.
-    Each point corresponds to one experimental configuration and is annotated
-    with its hand size.
-
-    Different marker styles are used to distinguish between linear scoring
-    and video-poker scoring systems.
-
-    The resulting figure is saved as:
-    risk_reward.png
-
-    Parameters:
-        df (pd.DataFrame):
-            DataFrame containing aggregated experimental evaluation results.
-    """
-    plt.figure(figsize=(8, 6))
-
-    strategies = ["greedy", "bandit", "qlearning", "oracle"]
-    markers = {"linear": "o", "video_poker": "s",}
-
-    for scoring_system in df["scoring_system"].unique():
-        subset = df[df["scoring_system"] == scoring_system]
-
-        for strategy in strategies:
-            plt.scatter(subset[f"std_{strategy}"], subset[f"avg_{strategy}"], marker=markers.get(scoring_system, "o"), s=100, label=f"{strategy} ({scoring_system})",)
-
-            for _, row in subset.iterrows():
-                plt.annotate(
-                    f"n={int(row['hand_size'])}", (row[f"std_{strategy}"], row[f"avg_{strategy}"],),fontsize=8,)
-
-    handles, labels = plt.gca().get_legend_handles_labels()
-    unique = dict(zip(labels, handles))
-
-    plt.legend(unique.values(), unique.keys(), fontsize=8)
-    plt.xlabel("Standard deviation of reward")
-    plt.ylabel("Average expected reward")
-    plt.title("Risk-reward tradeoff")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(PLOT_FOLDER / "risk_reward.png", dpi=300)
-    plt.close()
-
 if __name__ == "__main__":
     df = load_results()
 
@@ -204,6 +156,5 @@ if __name__ == "__main__":
     plot_match_rate(df)
     plot_strategy_runtime(df)
     plot_runtime_decomposition(df)
-    plot_risk_reward(df)
     
     print("Plots saved to plots folder.")
